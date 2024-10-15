@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Service App</title>
+    <link rel="stylesheet" href="main.css">
+
+</head>
+<body>
+    <%- include("_header.ejs") %>
+    <main>
+        <section id="hero" class="hero">
+            <h1>
+                <span>Your Trusted Car Servicing Partner</span>
+                <span>Certified Technicians</span>
+            </h1>
+            <p>we understand how important it is to keep your car in perfect condition</p>
+            <p class="phone"> Phone <a href="tel:+254717481718">+254 717 481  718</a> </p>
+            <a href="/contact" class="cta-link">Contact Us</a>
+            <div class="socials">
+                <a href="https://x.com" target="_blank">
+                    <ion-icon name="logo-twitter"></ion-icon>
+                </a>
+                <a href="https://facebook.com" target="_blank">                  
+                    <ion-icon name="logo-facebook"></ion-icon>
+                </a>
+                <a href="https://instagram.com" target="_blank">
+                    <ion-icon name="logo-instagram"></ion-icon>                   
+                </a>
+                <a href="https://linkedin.com" target="_blank">
+                    <ion-icon name="logo-linkedin"></ion-icon>
+                </a>
+            </div>
+        </section>
+        <section class="packages" id="packages"></section>
+        <section class="services" id="services"></section>
+        <section class="testimonials" id="testimonials"></section>
+    </main>
+    <%- include("_footer.ejs") %>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>
