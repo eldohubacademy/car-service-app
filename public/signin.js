@@ -62,3 +62,19 @@ function handleRoleChange() {
 
 // Add event listener to role select element
 roleSelect.addEventListener("change", handleRoleChange);
+
+// Function to show the alert and auto-hide it after 10 seconds
+function showAlert() {
+  const alert = document.getElementById("alert");
+
+  // Make the alert visible
+  alert.classList.remove("hide");
+
+  // Hide the alert after 10 seconds (10000 milliseconds)
+  setTimeout(() => {
+    alert.classList.add("hide");
+  }, 10000);
+}
+
+// Call the function to display the alert (triggered when needed)
+showAlert();

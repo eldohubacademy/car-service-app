@@ -20,7 +20,16 @@ app.get("/booknow", (req, res) => {
   res.render("booknow.ejs");
 });
 app.get("/signin", (req, res) => {
-  res.render("signin.ejs");
+  console.log(req.query);
+  if (req.query.message) {
+    res.render("signin.ejs", { message: "Registration succesful!! Sign in" });
+  } else {
+    res.render("signin.ejs");
+  }
+});
+app.post("/register", (req, res) => {
+  // actions -- input validation, save data in db(insert into clients/mechanics)
+  res.redirect("/signin?message=registered");
 });
 // page not found
 app.get("*", (req, res) => {
