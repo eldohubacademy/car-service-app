@@ -114,7 +114,7 @@ input:valid {
 
 .alertsuccess {
   position: fixed;
-  top: 20px;
+  top: 80px;
   right: 20px;
   background-color: #4caf50; /* Success green */
   color: white;

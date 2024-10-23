@@ -19,12 +19,12 @@
       <div class="windows">
         <form action="/signin" method="post" id="signin-window" class="active">
           <div>
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" required />
+            <label for="loginemail">Email</label>
+            <input type="email" name="loginemail" id="loginemail" required />
           </div>
           <div>
-            <label for="password">Password</label>
-            <input type="password" name="password" id="password" required />
+            <label for="pass">Password</label>
+            <input type="password" name="pass" id="pass" required />
           </div>
           <div>
             <label for="role">Role</label>
@@ -63,7 +63,6 @@
               <option value="none">Select Role</option>
               <option value="client">Client</option>
               <option value="mechanic">Mechanic</option>
-              <option value="admin">Admin</option>
             </select>
           </div>
 
@@ -85,6 +84,16 @@
             <label for="specialty">Specialty</label>
             <input type="text" name="specialty" id="specialty" />
           </div>
+          <!-- passwords -->
+          <div>
+            <label for="password">Password </label>
+            <input type="password" name="password" id="password" required />
+          </div>
+          <div>
+            <label for="confirm">Confirm Password</label>
+            <input type="password" name="confirm" id="confirm" required />
+            <p id="password-error"></p>
+          </div>
 
           <div>
             <input type="submit" value="Register" />
@@ -95,8 +104,7 @@
 
     <% if(locals.message){ %>
     <p class="alertsuccess" id="alert"><%= locals.message %></p>
-    <% } %> 
-    <%- include("_footer.ejs") %>
+    <% } %> <%- include("_footer.ejs") %>
     <script src="signin.js"></script>
   </body>
 </html>
