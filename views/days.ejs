@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Days</h1>
+
+    <div class="tabs"></div>
+    <div class="content">
+      <% data.forEach(expense=>{%> <%let day = new
+      Date(expense.date).toLocaleDateString('en-US', { weekday: 'long' }) %>
+      <div class="<%= day %> expense">
+        <p><%= expense.name %>: <%= expense.amount %></p>
+      </div>
+
+      <% }) %>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.13/dayjs.min.js"></script>
+    <script>
+      let currentDate = dayjs(); // 24/10
+
+      // Subtract 5 days from the current date
+      for (let days = 0; days < 7; days++) {
+        let newDate = currentDate.subtract(days, "day");
+        console.log(newDate.format("YYYY-MM-DD"));
+        let btn = document.createElement("button");
+        btn.textContent = newDate.format("dddd");
+        btn.id = newDate.format("dddd");
+        document.querySelector(".tabs").append(btn);
+      }
+      let todaysclass = "." + currentDate.format("dddd");
+      console.log(todaysclass);
+
+      document
+        .querySelectorAll(todaysclass)
+        .forEach((item) => (item.style.display = "block"));
+
+      document.querySelectorAll(".tabs button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const day = button.id; // Get the day from the button's id
+          const expenses = document.querySelectorAll(".expense");
+
+          // Loop through all expense divs and hide or show based on the day
+          expenses.forEach((expense) => {
+            if (expense.classList.contains(day)) {
+              expense.style.display = "block"; // Show the expense for the selected day
+            } else {
+              expense.style.display = "none"; // Hide other expenses
+            }
+          });
+        });
+      });
+
+      // Format and print the new date
+    </script>
+    <style>
+      .expense {
+        display: none;
+      }
+    </style>
+  </body>
+</html>

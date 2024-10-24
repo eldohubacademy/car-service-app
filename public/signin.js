@@ -102,6 +102,7 @@ document
 password.addEventListener("input", checkPasswordMatch);
 confirmPassword.addEventListener("input", checkPasswordMatch);
 
+
 function checkPasswordMatch() {
   if (password.value === confirmPassword.value) {
     // Clear the error message if passwords match
