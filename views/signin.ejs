@@ -104,6 +104,10 @@
 
     <% if(locals.message){ %>
     <p class="alertsuccess" id="alert"><%= locals.message %></p>
+    <% } %> <% if(locals.error){ %>
+    <p class="alertsuccess" id="alert" style="background-color: orangered">
+      <%= locals.error %>
+    </p>
     <% } %> <%- include("_footer.ejs") %>
     <script src="signin.js"></script>
   </body>

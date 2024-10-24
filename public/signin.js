@@ -56,6 +56,7 @@ function handleRoleChange() {
     addressField.style.display = "block";
   } else if (selectedRole === "mechanic") {
     // Show specialty for mechanics
+    emailField.style.display = "block";
     specialtyField.style.display = "block";
   }
 }
@@ -101,7 +102,6 @@ document
 // Add event listeners to clear the error as the user types
 password.addEventListener("input", checkPasswordMatch);
 confirmPassword.addEventListener("input", checkPasswordMatch);
-
 
 function checkPasswordMatch() {
   if (password.value === confirmPassword.value) {
