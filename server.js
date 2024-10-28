@@ -1,6 +1,8 @@
 const express = require("express");
-const mysql = require("mysql");
+const bcrypt = require("bcryptjs");
+const salt = bcrypt.genSaltSync(3);
 
+const mysql = require("mysql");
 const dbconn = mysql.createConnection({
   host: "localhost",
   database: "carservice",
@@ -36,17 +38,62 @@ app.get("/signin", (req, res) => {
     res.render("signin.ejs");
   }
 });
+app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
+  const { loginemail, pass, role } = req.body; // desctructuring , ternary operator
+  if (
+    loginemail == "admin@myapp.co.ke" &&
+    pass == "albert" &&
+    role == "admin"
+  ) {
+    // create a session for admin
+    res.render("dashboard.ejs");
+  } else {
+    let checkEmailSQL = "";
+    if (role == "mechanic") {
+      checkEmailSQL = `SELECT * FROM mechanics }" `;
+    } else if (role == "client") {
+      checkEmailSQL = `SELECT * FROM clients WHERE email = "${loginemail}" `;
+    } else {
+      return res.render("signin.ejs", {
+        loginError: "Incorrect Credentials. Try again!!",
+      });
+    }
+    dbconn.query(checkEmailSQL, (error, data) => {
+      if (error) {
+        console.log(error); // sql error
+        res.render("500.ejs");
+      } else {
+        console.log(data);
+        if (data.length == 0) {
+          return res.render("signin.ejs", {
+            loginError: "Incorrect Credentials. Try again!!",
+          });
+        } else {
+          if (bcrypt.compareSync(pass, data[0].password)) {
+            // successfulf signin --- create session -- store data server(ram/db)
+            res.send("Login successful!!!!");
+          } else {
+            return res.render("signin.ejs", {
+              loginError: "Incorrect Credentials. Try again!!",
+            });
+          }
+        }
+      }
+    });
+  }
+});
 app.post("/register", express.urlencoded({ extended: true }), (req, res) => {
   // actions -- input validation(package), save data in db(insert into clients/mechanics)
-  console.log("request body");
-  console.log(req.body);
   const { id, fullname, password, email, phone, role, specialty, address } =
-    req.body;
+    req.body; // desctructuring
+
+  const hashedPassword = bcrypt.hashSync(password, salt);
+
   let sql = "";
   if (role == "mechanic") {
-    sql = `INSERT INTO mechanics(id_number, full_name,phone,specialty,email,password) VALUES(${id}, "${fullname}", "${phone}", "${specialty}", "${email}", "${password}")`;
+    sql = `INSERT INTO mechanics(id_number, full_name,phone,specialty,email,password) VALUES(${id}, "${fullname}", "${phone}", "${specialty}", "${email}", "${hashedPassword}")`;
   } else if (role == "client") {
-    sql = `INSERT INTO clients(id_number, full_name,phone,address,email,password) VALUES(${id}, "${fullname}", "${phone}", "${address}", "${email}", "${password}")`;
+    sql = `INSERT INTO clients(id_number, full_name,phone,address,email,password) VALUES(${id}, "${fullname}", "${phone}", "${address}", "${email}", "${hashedPassword}")`;
   } else {
     return res.redirect("/signin?error=role");
   }

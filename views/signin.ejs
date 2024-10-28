@@ -18,6 +18,9 @@
       </div>
       <div class="windows">
         <form action="/signin" method="post" id="signin-window" class="active">
+          <% if(locals.loginError){ %>
+          <p style="color: orangered"><%= locals.loginError %></p>
+          <% } %>
           <div>
             <label for="loginemail">Email</label>
             <input type="email" name="loginemail" id="loginemail" required />
