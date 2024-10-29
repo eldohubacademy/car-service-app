@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(3);
 
@@ -11,11 +12,50 @@ const dbconn = mysql.createConnection({
 });
 const app = express();
 app.use(express.static("public")); // serve static files -- redirect requests fro .css, img, .js files to a folder public
+app.use(
+  session({
+    secret: "albertkip",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+// authorization middleware
+app.use((req, res, next) => {
+  if (!req.session.isLoggedIn && ["/account"].contains(req.path)) {
+    res.send("Access Denied!! Login First");
+  } else {
+    if (
+      req.session.role !== "admin" &&
+      ["/dashboard", "/mechanics"].contains(req.path)
+    ) {
+      res.send("Access Denied!! Admins Only");
+    } else {
+      next();
+    }
+  }
+});
 
 app.get("/", (req, res) => {
   //home route
+  console.log(req.session);
+
   res.render("index.ejs");
 });
+app.get("/account", (req, res) => {
+  if (req.session.role == "client") {
+    res.render("client.ejs");
+  } else {
+    res.render("mechanic.ejs");
+  }
+});
+app.get("/dashboard", (res, res) => {
+  // fetch data data
+  res.render("dashboard.ejs");
+});
+app.get("/mechanics", (req, res) => {
+  res.render("mechanicsdata.ejs");
+});
+
 app.get("/about", (req, res) => {
   res.render("about.ejs");
 });
@@ -46,11 +86,14 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
     role == "admin"
   ) {
     // create a session for admin
-    res.render("dashboard.ejs");
+    req.session.isLoggedIn = true;
+    req.session.user = { email: "admin@myapp.co.ke", name: "Admin" };
+    req.session.role = "admin";
+    res.redirect("/dashboard");
   } else {
     let checkEmailSQL = "";
     if (role == "mechanic") {
-      checkEmailSQL = `SELECT * FROM mechanics }" `;
+      checkEmailSQL = `SELECT * FROM mechanics WHERE email = "${loginemail}}" `;
     } else if (role == "client") {
       checkEmailSQL = `SELECT * FROM clients WHERE email = "${loginemail}" `;
     } else {
@@ -61,7 +104,7 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
     dbconn.query(checkEmailSQL, (error, data) => {
       if (error) {
         console.log(error); // sql error
-        res.render("500.ejs");
+        res.status(500).render("500.ejs");
       } else {
         console.log(data);
         if (data.length == 0) {
@@ -70,8 +113,12 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
           });
         } else {
           if (bcrypt.compareSync(pass, data[0].password)) {
+            // req.session.user = data[0]
             // successfulf signin --- create session -- store data server(ram/db)
-            res.send("Login successful!!!!");
+            req.session.isLoggedIn = true;
+            req.session.user = data[0];
+            req.session.role = role;
+            res.redirect("/account");
           } else {
             return res.render("signin.ejs", {
               loginError: "Incorrect Credentials. Try again!!",
