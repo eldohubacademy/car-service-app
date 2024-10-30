@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Mechanic Dashboard</title>
   </head>
   <body>
-    <h1>Mechanic Dashboard</h1>
+    <%- include("_dash_header.ejs") %>
+    <h1>Hello <%= locals.user.full_name %></h1>
+    <p>Email: <%= locals.user.email %></p>
+    <section>
+      <h2>Bookings History</h2>
+    </section>
   </body>
 </html>

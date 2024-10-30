@@ -21,12 +21,13 @@ app.use(
 );
 // authorization middleware
 app.use((req, res, next) => {
-  if (!req.session.isLoggedIn && ["/account"].contains(req.path)) {
+  res.locals.user = req.session.user;
+  if (!req.session.isLoggedIn && ["/account"].includes(req.path)) {
     res.send("Access Denied!! Login First");
   } else {
     if (
       req.session.role !== "admin" &&
-      ["/dashboard", "/mechanics"].contains(req.path)
+      ["/dashboard", "/mechanics"].includes(req.path)
     ) {
       res.send("Access Denied!! Admins Only");
     } else {
@@ -38,17 +39,24 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
   //home route
   console.log(req.session);
-
   res.render("index.ejs");
 });
 app.get("/account", (req, res) => {
   if (req.session.role == "client") {
-    res.render("client.ejs");
-  } else {
+    dbconn.query(
+      `SELECT * FROM bookings WHERE client_id = ${req.session.user.id_number}`,
+      (Err, data) => {
+        if (Err) return res.render("500.ejs");
+        return res.render("client.ejs", { bookings: data });
+      }
+    );
+  } else if (req.session.role == "mechanic") {
     res.render("mechanic.ejs");
+  } else {
+    res.redirect("/dashboard");
   }
 });
-app.get("/dashboard", (res, res) => {
+app.get("/dashboard", (req, res) => {
   // fetch data data
   res.render("dashboard.ejs");
 });
@@ -87,7 +95,7 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
   ) {
     // create a session for admin
     req.session.isLoggedIn = true;
-    req.session.user = { email: "admin@myapp.co.ke", name: "Admin" };
+    req.session.user = { email: "admin@myapp.co.ke", full_name: "Admin" };
     req.session.role = "admin";
     res.redirect("/dashboard");
   } else {
@@ -97,6 +105,7 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
     } else if (role == "client") {
       checkEmailSQL = `SELECT * FROM clients WHERE email = "${loginemail}" `;
     } else {
+      res.locals.loginError = "incorect credentials";
       return res.render("signin.ejs", {
         loginError: "Incorrect Credentials. Try again!!",
       });

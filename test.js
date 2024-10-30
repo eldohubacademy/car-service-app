@@ -1,43 +1,14 @@
-function getRandomDateWithinLastWeek() {
-  // Get the current date
-  const currentDate = new Date();
+let car = {
+  color: "red",
+};
 
-  // Get a random number of days to subtract (from 0 to 6)
-  const daysToSubtract = Math.floor(Math.random() * 7);
+car.model = "subaru"; // adding a new propterty to an existing car object
 
-  // Subtract random days to get a date within the last week
-  const randomDate = new Date(currentDate);
-  randomDate.setDate(currentDate.getDate() - daysToSubtract);
+console.log(car);
 
-  return randomDate.toISOString().split("T")[0]; // Returns in YYYY-MM-DD format
-}
+// res.locals
 
-function getRandomAmount() {
-  return (Math.random() * 500).toFixed(2); // Random amount between 0 and 500
-}
+// res.locals.login/error = "incorretc"
+// res.render("view.ejs", {loginErr: "incrretct"})
 
-function getRandomName() {
-  const names = [
-    "groceries",
-    "transportation",
-    "utilities",
-    "entertainment",
-    "dining",
-    "clothing",
-    "miscellaneous",
-  ];
-  return names[Math.floor(Math.random() * names.length)];
-}
-
-// Generate 20 random expense objects
-const expenses = [];
-
-for (let i = 0; i < 20; i++) {
-  expenses.push({
-    date: getRandomDateWithinLastWeek(),
-    name: getRandomName(),
-    amount: getRandomAmount(),
-  });
-}
-
-console.log(expenses);
+// locals.lpof
