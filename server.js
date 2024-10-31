@@ -22,14 +22,14 @@ app.use(
 // authorization middleware
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
-  if (!req.session.isLoggedIn && ["/account"].includes(req.path)) {
-    res.send("Access Denied!! Login First");
+  if (!req.session.isLoggedIn && ["/account", "/booknow"].includes(req.path)) {
+    res.render("401.ejs");
   } else {
     if (
       req.session.role !== "admin" &&
       ["/dashboard", "/mechanics"].includes(req.path)
     ) {
-      res.send("Access Denied!! Admins Only");
+      res.render("401.ejs");
     } else {
       next();
     }
@@ -45,13 +45,29 @@ app.get("/account", (req, res) => {
   if (req.session.role == "client") {
     dbconn.query(
       `SELECT * FROM bookings WHERE client_id = ${req.session.user.id_number}`,
-      (Err, data) => {
-        if (Err) return res.render("500.ejs");
-        return res.render("client.ejs", { bookings: data });
+      (error1, bookings) => {
+        dbconn.query("SELECT * FROM services", (error2, services) => {
+          dbconn.query("SELECT * FROM mechanics", (error3, mechanics) => {
+            if (error1 || error2 || error3)
+              return res.status(500).render("500.ejs");
+            return res.render("client.ejs", { bookings, services, mechanics });
+          });
+        });
       }
     );
   } else if (req.session.role == "mechanic") {
-    res.render("mechanic.ejs");
+    dbconn.query(
+      `SELECT * FROM bookings WHERE mechanic_id = ${req.session.user.id_number}`,
+      (error1, bookings) => {
+        dbconn.query("SELECT * FROM services", (error2, services) => {
+          dbconn.query("SELECT * FROM clients", (error3, clients) => {
+            if (error1 || error2 || error3)
+              return res.status(500).render("500.ejs");
+            return res.render("mechanic.ejs", { bookings, services, clients });
+          });
+        });
+      }
+    );
   } else {
     res.redirect("/dashboard");
   }
@@ -74,10 +90,14 @@ app.get("/services", (req, res) => {
   res.render("services.ejs");
 });
 app.get("/booknow", (req, res) => {
-  res.render("booknow.ejs");
+  if (req.session.isLoggedIn) {
+    res.render("booknow.ejs");
+  } else {
+    res.redirect("/signin");
+  }
 });
 app.get("/signin", (req, res) => {
-  console.log(req.query);
+  if (req.session.isLoggedIn) return res.redirect("/account");
   if (req.query.message) {
     res.render("signin.ejs", { message: "Registration succesful!! Sign in" });
   } else if (req.query.error) {

@@ -10,6 +10,48 @@
     <h1>Hello <%= locals.user.full_name %></h1>
     <p>Email: <%= locals.user.email %></p>
     <section>
+      <div class="book">
+        <button id="open-modal">Book Now</button>
+        <div class="modal">
+          <form action="/book" method="post">
+            <input
+              type="hidden"
+              name="client_id"
+              value="<%=locals.user.id_number%>"
+            />
+            <select name="mech" id="mech">
+              <% mechanics.forEach(mech=>{}) %>
+            </select>
+            <br />
+            <label for="day">Day</label>
+            <input type="date" name="day" id="day" />
+            <br />
+            <select name="time" id="time">
+              <option value="morning">Morning(9-11)</option>
+              <option value="midday">Mid Day(11-2)</option>
+              <option value="afternoon">Afternoon(2-5)</option>
+            </select>
+            <br />
+            <label for="services">Services</label>
+            <% locals.services.forEach(service=>{ %>
+            <input
+              type="checkbox"
+              name="service_<%=service.service_id%>"
+              id="service_<%=service.service_id%>"
+              value="<%=service.service_id%>"
+            />
+            <label for="service_<%=service.service_id%>">
+              <%= service.service_name %>
+            </label>
+            <% }) %>
+            <br />
+            <label for="description">Description</label>
+            <textarea name="description" id="description"></textarea>
+            <br />
+            <input type="submit" value="Complete Booking" />
+          </form>
+        </div>
+      </div>
       <h2>Bookings History</h2>
       <% if(bookings.length == 0){ %>
       <hr />
@@ -20,7 +62,14 @@
         <h3><%= booking.day %> in the <%= booking.scheduled_time %></h3>
         <p>Description: <%= booking.description %></p>
         <p>Services: <%= booking.services%></p>
-        <p>Mechanic: <%= booking.mechanic_id %></p>
+        <!-- booking(mech id , day ,time, client id)  mechanics[idnumber,name,phone...] -->
+        <!--  mechanics.find(mech=>mech.id_numer==booking.mechanic_id) -->
+        <% let bookingMech =
+        locals.mechanics.find(mech=>mech.id_number==booking.mechanic_id) %>
+        <h4>Mechanic</h4>
+        <p>Name: <%= bookingMech.full_name %></p>
+        <p>Phone: <%= bookingMech.phone %></p>
+        <p>Email: <%= bookingMech.email %></p>
       </div>
       <% }) %> <%}%>
     </section>
