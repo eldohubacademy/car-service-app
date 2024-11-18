@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Client Dashboard</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="dash.css" />
   </head>
   <body>
-    <%- include("_dash_header.ejs") %>
+    <%- include("_header.ejs") %>
     <h1>Hello <%= locals.user.full_name %></h1>
     <p>Email: <%= locals.user.email %></p>
     <section>
@@ -14,11 +16,7 @@
         <button id="open-modal">Book Now</button>
         <div class="modal">
           <form action="/book" method="post">
-            <input
-              type="hidden"
-              name="client_id"
-              value="<%=locals.user.id_number%>"
-            />
+            <label for="mech">Mechanic</label>
 
             <select name="mech" id="mech">
               <% mechanics.forEach(mech=>{ %>
@@ -33,6 +31,7 @@
             <label for="day">Day</label>
             <input type="date" name="day" id="day" />
             <br />
+            <label for="time">Time</label>
             <select name="time" id="time">
               <option value="morning">Morning(9-11)</option>
               <option value="midday">Mid Day(11-2)</option>
@@ -41,11 +40,12 @@
             <br />
             <label for="services">Services</label>
             <% locals.services.forEach(service=>{ %>
+            <br />
             <input
               type="checkbox"
               name="service_<%=service.service_id%>"
               id="service_<%=service.service_id%>"
-              value="<%=service.service_id%>"
+              value="<%=service.service_name%>"
             />
             <label for="service_<%=service.service_id%>">
               <%= service.service_name %>
@@ -63,12 +63,16 @@
       <% if(bookings.length == 0){ %>
       <hr />
       <p style="color: orangered">No bookings Found</p>
-      <% }else{ %> <% bookings.forEach(booking=>{%>
+      <% }else{ %> <% bookings.reverse().forEach(booking=>{%>
       <hr />
-      <div>
-        <h3><%= booking.day %> in the <%= booking.scheduled_time %></h3>
+      <div class="booking">
+        <h3>
+          <%= booking.day.toLocaleDateString() %> in the <%=
+          booking.scheduled_time %>
+        </h3>
         <p>Description: <%= booking.description %></p>
         <p>Services: <%= booking.services%></p>
+        <p style="color: green">Status: <%= booking.bookingstatus %></p>
         <!-- booking(mech id , day ,time, client id)  mechanics[idnumber,name,phone...] -->
         <!--  mechanics.find(mech=>mech.id_numer==booking.mechanic_id) -->
         <% let bookingMech =
@@ -77,6 +81,9 @@
         <p>Name: <%= bookingMech.full_name %></p>
         <p>Phone: <%= bookingMech.phone %></p>
         <p>Email: <%= bookingMech.email %></p>
+        <div class="actions">
+          <a class="cancel" href="/cancel">Cancel Booking</a>
+        </div>
       </div>
       <% }) %> <%}%>
     </section>

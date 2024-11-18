@@ -40,6 +40,7 @@ const roleSelect = document.getElementById("role-register");
 const emailField = document.getElementById("email-field");
 const addressField = document.getElementById("address-field");
 const specialtyField = document.getElementById("specialty-field");
+const profileField = document.getElementById("profile-field");
 
 // Function to show/hide fields based on role selection
 function handleRoleChange() {
@@ -49,15 +50,19 @@ function handleRoleChange() {
   emailField.style.display = "none";
   addressField.style.display = "none";
   specialtyField.style.display = "none";
+  profileField.style.display = "none";
 
   if (selectedRole === "client") {
     // Show email and address for clients
     emailField.style.display = "block";
     addressField.style.display = "block";
+    // set action attribute to a diff route e.g. /clientreg
   } else if (selectedRole === "mechanic") {
-    // Show specialty for mechanics
+    // Show specialty,emai and profile for mechanics
     emailField.style.display = "block";
     specialtyField.style.display = "block";
+    profileField.style.display = "block";
+    // updation action -- setAttritioute(action, "/registerMEch")
   }
 }
 

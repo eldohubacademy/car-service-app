@@ -3,6 +3,11 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(3);
 
+const multer = require("multer");
+const upload = multer({ dest: "public/mechanicprofiles" });
+// uploadmech --drs
+//  uploadclien -dest
+
 const mysql = require("mysql");
 const dbconn = mysql.createConnection({
   host: "localhost",
@@ -22,12 +27,23 @@ app.use(
 // authorization middleware
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
-  if (!req.session.isLoggedIn && ["/account", "/booknow"].includes(req.path)) {
+  res.locals.isLoggedIn = req.session.isLoggedIn;
+  if (
+    !req.session.isLoggedIn &&
+    [
+      "/account",
+      "/booknow",
+      "/book",
+      "/accept",
+      "/decline",
+      "/cancel",
+    ].includes(req.path)
+  ) {
     res.render("401.ejs");
   } else {
     if (
       req.session.role !== "admin" &&
-      ["/dashboard", "/mechanics"].includes(req.path)
+      ["/dashboard", "/mechanics", "/deletebooking"].includes(req.path)
     ) {
       res.render("401.ejs");
     } else {
@@ -63,6 +79,7 @@ app.get("/account", (req, res) => {
           dbconn.query("SELECT * FROM clients", (error3, clients) => {
             if (error1 || error2 || error3)
               return res.status(500).render("500.ejs");
+            console.log(bookings); // [] ---
             return res.render("mechanic.ejs", { bookings, services, clients });
           });
         });
@@ -108,6 +125,8 @@ app.get("/signin", (req, res) => {
 });
 app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
   const { loginemail, pass, role } = req.body; // desctructuring , ternary operator
+  console.log(req.body);
+
   if (
     loginemail == "admin@myapp.co.ke" &&
     pass == "albert" &&
@@ -121,7 +140,7 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
   } else {
     let checkEmailSQL = "";
     if (role == "mechanic") {
-      checkEmailSQL = `SELECT * FROM mechanics WHERE email = "${loginemail}}" `;
+      checkEmailSQL = `SELECT * FROM mechanics WHERE email = "${loginemail}" `;
     } else if (role == "client") {
       checkEmailSQL = `SELECT * FROM clients WHERE email = "${loginemail}" `;
     } else {
@@ -130,6 +149,7 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
         loginError: "Incorrect Credentials. Try again!!",
       });
     }
+
     dbconn.query(checkEmailSQL, (error, data) => {
       if (error) {
         console.log(error); // sql error
@@ -158,29 +178,35 @@ app.post("/signin", express.urlencoded({ extended: true }), (req, res) => {
     });
   }
 });
-app.post("/register", express.urlencoded({ extended: true }), (req, res) => {
-  // actions -- input validation(package), save data in db(insert into clients/mechanics)
-  const { id, fullname, password, email, phone, role, specialty, address } =
-    req.body; // desctructuring
+app.post(
+  "/register",
+  express.urlencoded({ extended: true }),
+  upload.single("profile"),
+  (req, res) => {
+    // actions -- input validation(package), save data in db(insert into clients/mechanics)
+    const { id, fullname, password, email, phone, role, specialty, address } =
+      req.body; // desctructuring
+    console.log(req.file);
 
-  const hashedPassword = bcrypt.hashSync(password, salt);
+    const hashedPassword = bcrypt.hashSync(password, salt);
 
-  let sql = "";
-  if (role == "mechanic") {
-    sql = `INSERT INTO mechanics(id_number, full_name,phone,specialty,email,password) VALUES(${id}, "${fullname}", "${phone}", "${specialty}", "${email}", "${hashedPassword}")`;
-  } else if (role == "client") {
-    sql = `INSERT INTO clients(id_number, full_name,phone,address,email,password) VALUES(${id}, "${fullname}", "${phone}", "${address}", "${email}", "${hashedPassword}")`;
-  } else {
-    return res.redirect("/signin?error=role");
-  }
-  dbconn.query(sql, (error) => {
-    if (error) {
-      res.render("500.ejs");
+    let sql = "";
+    if (role == "mechanic") {
+      sql = `INSERT INTO mechanics(id_number, full_name,phone,specialty,email,password,profilepic) VALUES(${id}, "${fullname}", "${phone}", "${specialty}", "${email}", "${hashedPassword}", "${req.file.filename}")`;
+    } else if (role == "client") {
+      sql = `INSERT INTO clients(id_number, full_name,phone,address,email,password) VALUES(${id}, "${fullname}", "${phone}", "${address}", "${email}", "${hashedPassword}")`;
     } else {
-      res.redirect("/signin?message=registered");
+      return res.redirect("/signin?error=role");
     }
-  });
-});
+    dbconn.query(sql, (error) => {
+      if (error) {
+        res.render("500.ejs");
+      } else {
+        res.redirect("/signin?message=registered");
+      }
+    });
+  }
+);
 
 app.get("/days", (req, res) => {
   res.render("days.ejs", {
@@ -207,6 +233,69 @@ app.get("/days", (req, res) => {
       { date: "2024-10-22", name: "clothing", amount: "449.11" },
       { date: "2024-10-20", name: "clothing", amount: "352.89" },
     ],
+  });
+});
+
+app.post("/book", express.urlencoded({ extended: true }), (req, res) => {
+  console.log(req.body);
+  const { mech, day, time, description } = req.body;
+  //inserting booking to db
+  const services = [];
+  // Iterate over the keys in the object
+  for (const key in req.body) {
+    // Check if the key starts with "service_"
+    if (key.startsWith("service_")) {
+      services.push(req.body[key]); // Add the service to the array
+    }
+  }
+  const sqlStatement = `INSERT INTO bookings(client_id,mechanic_id,day,scheduled_time,description,services) 
+  VALUES ( ${
+    req.session.user.id_number
+  }, ${mech}, "${day}", "${time}", "${description}", "${services.join(",")}" )`;
+
+  dbconn.query(sqlStatement, (error) => {
+    if (error) {
+      console.log(error);
+      res.status(500).render("500.ejs");
+    } else {
+      // notify both the client and mech about the new booking via email/sms
+      res.redirect("/account");
+    }
+  });
+});
+
+app.get("/accept", (req, res) => {
+  let bookingId = req.query.booking || "";
+  let sql = `UPDATE bookings SET bookingstatus="ACCEPTED" WHERE booking_id = ${bookingId} `;
+  dbconn.query(sql, (error) => {
+    if (!error) {
+      res.redirect("/account?message=Succcesfully Accepted booking");
+    } else {
+      console.log(error);
+      res.status(500).render("500.ejs");
+    }
+  });
+});
+
+app.get("/decline", (req, res) => {
+  let bookingId = req.query.booking || "";
+  let sql = `UPDATE bookings SET bookingstatus="DECLINED" WHERE booking_id = ${bookingId} `;
+  dbconn.query(sql, (error) => {
+    if (!error) {
+      //
+      res.redirect("/account?message=Succcesfully Declined booking");
+    } else {
+      console.log(error);
+      res.status(500).render("500.ejs");
+    }
+  });
+});
+// cancel -- by client
+
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).render("500.ejs");
+    res.redirect("/");
   });
 });
 // page not found

@@ -1,0 +1,19 @@
+.booking {
+  position: relative;
+}
+
+.actions {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+}
+.actions a {
+  padding: 8px 14px;
+  background-color: orangered;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+}
+.actions .accept {
+  background-color: green;
+}

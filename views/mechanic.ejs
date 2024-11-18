@@ -4,13 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mechanic Dashboard</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="dash.css" />
   </head>
   <body>
-    <%- include("_dash_header.ejs") %>
+    <%- include("_header.ejs") %>
     <h1>Hello <%= locals.user.full_name %></h1>
+    <img src="mechanicprofiles/<%= locals.user.profilepic %>" width="200px" alt="profile">
     <p>Email: <%= locals.user.email %></p>
     <section>
       <h2>Bookings History</h2>
+      <% if(bookings.length == 0){ %>
+      <hr />
+      <p style="color: orangered">No bookings Found</p>
+      <% }else{ %> <% bookings.forEach(booking=>{%>
+      <hr />
+      <div class="booking">
+        <h3>
+          <%= booking.day.toLocaleDateString() %> in the <%=
+          booking.scheduled_time %>
+        </h3>
+        <p>Description: <%= booking.description %></p>
+        <p>Services: <%= booking.services%></p>
+        <p style="color: green">Status: <%= booking.bookingstatus %></p>
+        <% let bookingClient =
+        locals.clients.find(client=>client.id_number==booking.client_id) %>
+        <h4>Client</h4>
+        <p>Name: <%= bookingClient.full_name %></p>
+        <p>Phone: <%= bookingClient.phone %></p>
+        <p>Email: <%= bookingClient.email %></p>
+        <div class="actions">
+          <a class="accept" href="/accept?booking=<%= booking.booking_id%>"
+            >Accept Booking</a
+          >
+          <a class="decline" href="/decline?booking=<%= booking.booking_id%>"
+            >Decline Booking</a
+          >
+        </div>
+      </div>
+      <% }) %> <%}%>
     </section>
   </body>
 </html>
